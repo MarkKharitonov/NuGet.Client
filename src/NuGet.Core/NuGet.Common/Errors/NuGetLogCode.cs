@@ -255,17 +255,17 @@ namespace NuGet.Common
         /// <summary>
         /// Duplicate PackageReference found
         /// </summary>
-        NU1504 = 1505,
+        NU1504 = 1504,
 
         /// <summary>
         /// Duplicate PackageDownload found
         /// </summary>
-        NU1505 = 1506,
+        NU1505 = 1505,
 
         /// <summary>
         /// Duplicate PackageVersion found
         /// </summary>
-        NU1506 = 1507,
+        NU1506 = 1506,
 
         /// <summary>
         /// Dependency bumped up
