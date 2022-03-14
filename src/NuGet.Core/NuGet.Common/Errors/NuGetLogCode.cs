@@ -253,6 +253,21 @@ namespace NuGet.Common
         NU1503 = 1503,
 
         /// <summary>
+        /// Duplicate PackageReference found
+        /// </summary>
+        NU1504 = 1505,
+
+        /// <summary>
+        /// Duplicate PackageDownload found
+        /// </summary>
+        NU1505 = 1506,
+
+        /// <summary>
+        /// Duplicate PackageVersion found
+        /// </summary>
+        NU1506 = 1507,
+
+        /// <summary>
         /// Dependency bumped up
         /// </summary>
         NU1601 = 1601,
