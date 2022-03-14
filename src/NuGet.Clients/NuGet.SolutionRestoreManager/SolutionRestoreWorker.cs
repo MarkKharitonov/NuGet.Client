@@ -410,7 +410,7 @@ namespace NuGet.SolutionRestoreManager
                     using (var restoreOperation = new BackgroundRestoreOperation())
                     {
                         await PromoteTaskToActiveAsync(restoreOperation, token);
-                        var isBulkRestoreCoordinationEnabled = _nuGetExperimentationService.Value.IsExperimentEnabled(ExperimentationConstants.BulkRestoreCoordination);
+                        var isBulkRestoreCoordinationEnabled = true;
                         var restoreTrackingData = GetRestoreTrackingData(
                             restoreReason: ImplicitRestoreReason.None,
                             requestCount: 1,
@@ -468,7 +468,7 @@ namespace NuGet.SolutionRestoreManager
             }
 
             ImplicitRestoreReason restoreReason = ImplicitRestoreReason.None;
-            var isBulkRestoreCoordinationEnabled = _nuGetExperimentationService.Value.IsExperimentEnabled(ExperimentationConstants.BulkRestoreCoordination);
+            var isBulkRestoreCoordinationEnabled = true;
             DateTime? bulkRestoreCoordinationCheckStartTime = default;
             // Loops until there are pending restore requests or it's get cancelled
             while (!token.IsCancellationRequested)
