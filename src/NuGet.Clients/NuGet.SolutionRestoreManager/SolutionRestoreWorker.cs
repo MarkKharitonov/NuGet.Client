@@ -10,6 +10,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft;
+using Microsoft.Internal.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
@@ -410,7 +411,7 @@ namespace NuGet.SolutionRestoreManager
                     using (var restoreOperation = new BackgroundRestoreOperation())
                     {
                         await PromoteTaskToActiveAsync(restoreOperation, token);
-                        var isBulkRestoreCoordinationEnabled = true;
+                        var isBulkRestoreCoordinationEnabled = await IsBulkRestoreCoordinationEnabledAsync();
                         var restoreTrackingData = GetRestoreTrackingData(
                             restoreReason: ImplicitRestoreReason.None,
                             requestCount: 1,
@@ -430,6 +431,14 @@ namespace NuGet.SolutionRestoreManager
                 // Signal that restore has been completed.
                 _isCompleteEvent.Set();
             }
+        }
+
+        private async Task<bool> IsBulkRestoreCoordinationEnabledAsync()
+        {
+            _nuGetExperimentationService.Value.IsExperimentEnabled(ExperimentationConstants.BulkRestoreCoordination);
+            await NuGetUIThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+            IVsFeatureFlags featureFlags = await AsyncServiceProvider.GlobalProvider.GetServiceAsync<SVsFeatureFlags, IVsFeatureFlags>();
+            return featureFlags.IsFeatureEnabled("JavaScript.LanguageService.LightBulb", defaultValue: true);
         }
 
         public async Task CleanCacheAsync()
@@ -468,7 +477,7 @@ namespace NuGet.SolutionRestoreManager
             }
 
             ImplicitRestoreReason restoreReason = ImplicitRestoreReason.None;
-            var isBulkRestoreCoordinationEnabled = true;
+            var isBulkRestoreCoordinationEnabled = await IsBulkRestoreCoordinationEnabledAsync();
             DateTime? bulkRestoreCoordinationCheckStartTime = default;
             // Loops until there are pending restore requests or it's get cancelled
             while (!token.IsCancellationRequested)
