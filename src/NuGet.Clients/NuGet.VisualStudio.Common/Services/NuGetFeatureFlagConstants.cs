@@ -7,7 +7,7 @@ namespace NuGet.VisualStudio
 {
     public class NuGetFeatureFlagConstants
     {
-        public NuGetFeatureFlagConstants(string featureFlagName, string featureEnvironmentVariable, bool defaultFeatureFlag)
+        internal NuGetFeatureFlagConstants(string featureFlagName, string featureEnvironmentVariable, bool defaultFeatureFlag)
         {
             FeatureFlagName = featureFlagName ?? throw new ArgumentNullException(nameof(featureFlagName));
             FeatureEnvironmentVariable = featureEnvironmentVariable;

@@ -27,7 +27,7 @@ namespace NuGet.VisualStudio
             // ensure uniqueness.
         }
 
-        public NuGetFeatureFlagService(IEnvironmentVariableReader environmentVariableReader, IAsyncServiceProvider asyncServiceProvider)
+        internal NuGetFeatureFlagService(IEnvironmentVariableReader environmentVariableReader, IAsyncServiceProvider asyncServiceProvider)
         {
             _environmentVariableReader = environmentVariableReader ?? throw new ArgumentNullException(nameof(environmentVariableReader));
             _asyncServiceProvider = asyncServiceProvider ?? throw new ArgumentNullException(nameof(asyncServiceProvider));
