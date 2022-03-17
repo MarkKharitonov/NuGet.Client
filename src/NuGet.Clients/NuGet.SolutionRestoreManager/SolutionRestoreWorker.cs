@@ -74,7 +74,7 @@ namespace NuGet.SolutionRestoreManager
         private Lazy<INuGetErrorList> _errorList;
         private readonly Lazy<IOutputConsoleProvider> _outputConsoleProvider;
 
-        private Lazy<INuGetExperimentationService> _nuGetExperimentationService;
+        private Lazy<INuGetFeatureFlagService> _nugetFeatureFlagService;
 
         public Task<bool> CurrentRestoreOperation => _activeRestoreTask;
 
@@ -98,7 +98,7 @@ namespace NuGet.SolutionRestoreManager
             Lazy<Common.ILogger> logger,
             Lazy<INuGetErrorList> errorList,
             Lazy<IOutputConsoleProvider> outputConsoleProvider,
-            Lazy<INuGetExperimentationService> nuGetExperimentationService)
+            Lazy<INuGetFeatureFlagService> nuGetExperimentationService)
             : this(AsyncServiceProvider.GlobalProvider,
                   solutionManager,
                   lockService,
@@ -115,7 +115,7 @@ namespace NuGet.SolutionRestoreManager
             Lazy<Common.ILogger> logger,
             Lazy<INuGetErrorList> errorList,
             Lazy<IOutputConsoleProvider> outputConsoleProvider,
-            Lazy<INuGetExperimentationService> nuGetExperimentationService)
+            Lazy<INuGetFeatureFlagService> nuGetExperimentationService)
         {
             if (asyncServiceProvider == null)
             {
@@ -158,7 +158,7 @@ namespace NuGet.SolutionRestoreManager
             _logger = logger;
             _errorList = errorList;
             _outputConsoleProvider = outputConsoleProvider;
-            _nuGetExperimentationService = nuGetExperimentationService;
+            _nugetFeatureFlagService = nuGetExperimentationService;
 
             var joinableTaskContextNode = new JoinableTaskContextNode(ThreadHelper.JoinableTaskContext);
             _joinableCollection = joinableTaskContextNode.CreateCollection();
@@ -435,10 +435,7 @@ namespace NuGet.SolutionRestoreManager
 
         private async Task<bool> IsBulkRestoreCoordinationEnabledAsync()
         {
-            _nuGetExperimentationService.Value.IsExperimentEnabled(ExperimentationConstants.BulkRestoreCoordination);
-            await NuGetUIThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-            IVsFeatureFlags featureFlags = await AsyncServiceProvider.GlobalProvider.GetServiceAsync<SVsFeatureFlags, IVsFeatureFlags>();
-            return featureFlags.IsFeatureEnabled("JavaScript.LanguageService.LightBulb", defaultValue: true);
+            return await _nugetFeatureFlagService.Value.IsFeatureEnabledAsync(NuGetFeatureFlagConstants.BulkRestoreCoordination);
         }
 
         public async Task CleanCacheAsync()
