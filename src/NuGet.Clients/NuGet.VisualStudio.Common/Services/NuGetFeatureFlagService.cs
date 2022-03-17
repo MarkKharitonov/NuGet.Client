@@ -21,8 +21,8 @@ namespace NuGet.VisualStudio
         private readonly Dictionary<string, bool> _featureFlagCache;
 
         [ImportingConstructor]
-        public NuGetFeatureFlagService(IAsyncServiceProvider asyncServiceProvider)
-            : this(EnvironmentVariableWrapper.Instance, asyncServiceProvider)
+        public NuGetFeatureFlagService()
+            : this(EnvironmentVariableWrapper.Instance, AsyncServiceProvider.GlobalProvider)
         {
             // ensure uniqueness.
         }
@@ -45,7 +45,6 @@ namespace NuGet.VisualStudio
                 featureEnabled = featureFlagService.IsFeatureEnabled(experiment.FeatureFlagName, defaultValue: experiment.DefaultFeatureFlag);
                 _featureFlagCache.Add(experiment.FeatureFlagName, featureEnabled);
             }
-
             return !isFeatureForcedDisabled && (isFeatureForcedEnabled || featureEnabled);
         }
 

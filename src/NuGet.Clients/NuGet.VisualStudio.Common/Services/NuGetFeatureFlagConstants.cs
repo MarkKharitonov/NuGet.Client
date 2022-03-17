@@ -30,6 +30,6 @@ namespace NuGet.VisualStudio
         /// </summary>
         internal bool DefaultFeatureFlag { get; }
 
-        public static readonly NuGetFeatureFlagConstants BulkRestoreCoordination = new("nugetBulkRestoreCoordination", "NUGET_BULK_RESTORE_COORDINATION", defaultFeatureFlag: true);
+        public static readonly NuGetFeatureFlagConstants BulkRestoreCoordination = new("NuGet.BulkRestoreCoordination", "NUGET_BULK_RESTORE_COORDINATION", defaultFeatureFlag: true);
     }
 }
