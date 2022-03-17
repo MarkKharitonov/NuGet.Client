@@ -66,7 +66,6 @@ namespace NuGet.VisualStudio.Common.Test
                 { featureFlagConstant.FeatureEnvironmentVariable, "1" },
             };
             var envVarWrapper = new TestEnvironmentVariableReader(envVars);
-
             var vsFeatureFlags = Mock.Of<IVsFeatureFlags>();
 
             Mock.Get(vsFeatureFlags)
@@ -75,7 +74,7 @@ namespace NuGet.VisualStudio.Common.Test
                 .Returns(true);
 
             _globalProvider.AddService(typeof(SVsFeatureFlags), vsFeatureFlags);
-            var service = new NuGetFeatureFlagService(new EnvironmentVariableWrapper(), AsyncServiceProvider.GlobalProvider);
+            var service = new NuGetFeatureFlagService(envVarWrapper, AsyncServiceProvider.GlobalProvider);
             (await service.IsFeatureEnabledAsync(featureFlagConstant)).Should().Be(true);
 
         }
@@ -91,7 +90,6 @@ namespace NuGet.VisualStudio.Common.Test
                 { featureFlagConstant.FeatureEnvironmentVariable, value },
             };
             var envVarWrapper = new TestEnvironmentVariableReader(envVars);
-
             var vsFeatureFlags = Mock.Of<IVsFeatureFlags>();
 
             Mock.Get(vsFeatureFlags)
@@ -100,7 +98,7 @@ namespace NuGet.VisualStudio.Common.Test
                 .Returns(false);
 
             _globalProvider.AddService(typeof(SVsFeatureFlags), vsFeatureFlags);
-            var service = new NuGetFeatureFlagService(new EnvironmentVariableWrapper(), AsyncServiceProvider.GlobalProvider);
+            var service = new NuGetFeatureFlagService(envVarWrapper, AsyncServiceProvider.GlobalProvider);
             (await service.IsFeatureEnabledAsync(featureFlagConstant)).Should().Be(false);
         }
 
@@ -111,7 +109,6 @@ namespace NuGet.VisualStudio.Common.Test
         {
             var featureFlagConstant = new NuGetFeatureFlagConstants("featureFlag", "featureEnvVar", defaultFeatureFlag: false);
             var envVarWrapper = new TestEnvironmentVariableReader(new Dictionary<string, string>());
-
             var vsFeatureFlags = Mock.Of<IVsFeatureFlags>();
 
             Mock.Get(vsFeatureFlags)
@@ -120,80 +117,89 @@ namespace NuGet.VisualStudio.Common.Test
                 .Returns(isFeatureEnabled);
 
             _globalProvider.AddService(typeof(SVsFeatureFlags), vsFeatureFlags);
-            var service = new NuGetFeatureFlagService(new EnvironmentVariableWrapper(), AsyncServiceProvider.GlobalProvider);
+            var service = new NuGetFeatureFlagService(envVarWrapper, AsyncServiceProvider.GlobalProvider);
             (await service.IsFeatureEnabledAsync(featureFlagConstant)).Should().Be(expectedResult);
         }
 
         [Fact]
-        public void IsEnabled_WithEnvVarEnabled_WithExperimentalServiceDisabled_ReturnsTrue()
+        public async Task IsFeatureEnabledAsync_WithEnvVarEnabled_WithFeatureFlagServiceDisabled_ReturnsTrue()
         {
-            var constant = ExperimentationConstants.PackageManagerBackgroundColor;
-            var flightsEnabled = new Dictionary<string, bool>()
-            {
-                { constant.FlightFlag, false },
-            };
-
+            var featureFlagConstant = new NuGetFeatureFlagConstants("featureFlag", "featureEnvVar", defaultFeatureFlag: false);
             var envVars = new Dictionary<string, string>()
             {
-                { constant.FlightEnvironmentVariable, "1" },
+                { featureFlagConstant.FeatureEnvironmentVariable, "1" },
             };
             var envVarWrapper = new TestEnvironmentVariableReader(envVars);
+            var vsFeatureFlags = Mock.Of<IVsFeatureFlags>();
 
-            var service = new NuGetExperimentationService(envVarWrapper, new TestVisualStudioExperimentalService(flightsEnabled));
+            Mock.Get(vsFeatureFlags)
+                .Setup(x => x.IsFeatureEnabled(
+                    It.IsAny<string>(), It.IsAny<bool>()))
+                .Returns(false);
 
-            service.IsExperimentEnabled(ExperimentationConstants.PackageManagerBackgroundColor).Should().BeTrue();
+            _globalProvider.AddService(typeof(SVsFeatureFlags), vsFeatureFlags);
+            var service = new NuGetFeatureFlagService(envVarWrapper, AsyncServiceProvider.GlobalProvider);
+            (await service.IsFeatureEnabledAsync(featureFlagConstant)).Should().Be(true);
         }
 
         [Fact]
-        public void IsEnabled_WithEnvVarDisabled_WithExperimentalServiceEnabled_ReturnsFalse()
+        public async Task IsFeatureEnabledAsync_WithEnvVarDisabled_WithFeatureFlagServiceEnabled_ReturnsFalse()
         {
-            var constant = ExperimentationConstants.PackageManagerBackgroundColor;
-            var flightsEnabled = new Dictionary<string, bool>()
-            {
-                { constant.FlightFlag, true },
-            };
-
+            var featureFlagConstant = new NuGetFeatureFlagConstants("featureFlag", "featureEnvVar", defaultFeatureFlag: false);
             var envVars = new Dictionary<string, string>()
             {
-                { constant.FlightEnvironmentVariable, "0" },
+                { featureFlagConstant.FeatureEnvironmentVariable, "0" },
             };
             var envVarWrapper = new TestEnvironmentVariableReader(envVars);
+            var vsFeatureFlags = Mock.Of<IVsFeatureFlags>();
 
-            var service = new NuGetExperimentationService(envVarWrapper, new TestVisualStudioExperimentalService(flightsEnabled));
+            Mock.Get(vsFeatureFlags)
+                .Setup(x => x.IsFeatureEnabled(
+                    It.IsAny<string>(), It.IsAny<bool>()))
+                .Returns(true);
 
-            service.IsExperimentEnabled(ExperimentationConstants.PackageManagerBackgroundColor).Should().BeFalse();
+            _globalProvider.AddService(typeof(SVsFeatureFlags), vsFeatureFlags);
+            var service = new NuGetFeatureFlagService(envVarWrapper, AsyncServiceProvider.GlobalProvider);
+            (await service.IsFeatureEnabledAsync(featureFlagConstant)).Should().Be(false);
         }
 
         [Fact]
-        public void IsEnabled_WithNullEnvironmentVariableForConstant_HandlesGracefully()
+        public async Task IsFeatureEnabledAsync_WithNullEnvironmentVariableForConstant_HandlesGracefully()
         {
-            var service = new NuGetExperimentationService(new EnvironmentVariableWrapper(), new TestVisualStudioExperimentalService());
-            service.IsExperimentEnabled(new ExperimentationConstants("flag", null)).Should().BeFalse();
+            var featureFlagConstant = new NuGetFeatureFlagConstants("featureFlag", null, defaultFeatureFlag: false);
+            var vsFeatureFlags = Mock.Of<IVsFeatureFlags>();
+
+            _globalProvider.AddService(typeof(SVsFeatureFlags), vsFeatureFlags);
+            var service = new NuGetFeatureFlagService(new EnvironmentVariableWrapper(), AsyncServiceProvider.GlobalProvider);
+            (await service.IsFeatureEnabledAsync(featureFlagConstant)).Should().Be(false);
         }
 
         [Fact]
-        public void IsEnabled_MultipleExperimentsOverriddenWithDifferentEnvVars_DoNotConflict()
+        public async Task IsFeatureEnabledAsync_MultipleFeaturesOverriddenWithDifferentEnvVars_DoNotConflict()
         {
-            var forcedOffExperiment = new ExperimentationConstants("TestExp1", "TEST_EXP_1");
-            var forcedOnExperiment = new ExperimentationConstants("TestExp2", "TEST_EXP_2");
-            var noOverrideExperiment = new ExperimentationConstants("TestExp3", "TEST_EXP_3");
-            var flightsEnabled = new Dictionary<string, bool>()
-            {
-                { forcedOffExperiment.FlightFlag, true },
-                { forcedOnExperiment.FlightFlag, true },
-                { noOverrideExperiment.FlightFlag, true },
-            };
+            var forcedOff = new NuGetFeatureFlagConstants("TestExp1", "TEST_EXP_1", defaultFeatureFlag: false);
+            var forcedOn = new NuGetFeatureFlagConstants("TestExp2", "TEST_EXP_2", defaultFeatureFlag: false);
+            var noOverride = new NuGetFeatureFlagConstants("TestExp3", "TEST_EXP_3", defaultFeatureFlag: false);
             var envVars = new Dictionary<string, string>()
             {
-                { forcedOnExperiment.FlightEnvironmentVariable, "1" },
-                { forcedOffExperiment.FlightEnvironmentVariable, "0" },
+                { forcedOn.FeatureEnvironmentVariable, "1" },
+                { forcedOff.FeatureEnvironmentVariable, "0" },
             };
             var envVarWrapper = new TestEnvironmentVariableReader(envVars);
-            var service = new NuGetExperimentationService(envVarWrapper, new TestVisualStudioExperimentalService(flightsEnabled));
+            var vsFeatureFlags = Mock.Of<IVsFeatureFlags>();
 
-            service.IsExperimentEnabled(forcedOffExperiment).Should().BeFalse();
-            service.IsExperimentEnabled(forcedOnExperiment).Should().BeTrue();
-            service.IsExperimentEnabled(noOverrideExperiment).Should().BeTrue();
+            Mock.Get(vsFeatureFlags)
+                .Setup(x => x.IsFeatureEnabled(
+                    It.IsAny<string>(), It.IsAny<bool>()))
+                .Returns(true);
+
+            _globalProvider.AddService(typeof(SVsFeatureFlags), vsFeatureFlags);
+
+            var service = new NuGetFeatureFlagService(envVarWrapper, AsyncServiceProvider.GlobalProvider);
+
+            (await service.IsFeatureEnabledAsync(forcedOff)).Should().BeFalse();
+            (await service.IsFeatureEnabledAsync(forcedOn)).Should().BeTrue();
+            (await service.IsFeatureEnabledAsync(noOverride)).Should().BeTrue();
         }
     }
 }
